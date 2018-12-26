@@ -72,18 +72,18 @@ void Socket::SendData(int Port,const char* DestAddr)
 			data[2 * i] = i;
 			data[2 * i + 1] = i*2;
 		}
-		printf("\n");
 
 		//send the message
 		if (sendto(s, (char*)data, BUFLEN, 0, (struct sockaddr *) &si_other, sizeof(si_other)) == SOCKET_ERROR)
 		{
-			printf("sendto() failed with error code : %d", WSAGetLastError());
+			printf("sendto() failed with error code : %d\n", WSAGetLastError());
 			exit(EXIT_FAILURE);
 		}
-
+		printf("Data sent.\n");
+		//
 		//clear the buffer by filling null, it might have previously received data
 		memset(buf, '\0', BUFLEN);
-		puts(buf);
+		//puts(buf);
 	}
 
 	closesocket(s);

@@ -9,7 +9,7 @@
 
 using namespace std;
 
-Socket::Socket(int Port, char* Addr, IPPROTO Soctype)
+Socket::Socket(int Port, const char* Addr, IPPROTO Soctype)
 {
 	WSADATA wsa;
 
@@ -50,7 +50,7 @@ Socket::Socket(int Port, char* Addr, IPPROTO Soctype)
 
 }
 
-void Socket::SendData(int Port, char* DestAddr)
+void Socket::SendData(int Port,const char* DestAddr)
 {
 	using namespace chrono;
 	using system_time = steady_clock;

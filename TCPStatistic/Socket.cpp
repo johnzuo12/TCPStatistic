@@ -36,17 +36,16 @@ Socket::Socket(int Port, const char* Addr, IPPROTO Soctype)
 
 	//Prepare the sockaddr_in structure
 	server.sin_family = AF_INET;
-	server.sin_addr.s_addr = inet_addr(addr);
+	server.sin_addr.s_addr = INADDR_ANY;
 	server.sin_port = htons(Portnum);
 
 	//Bind
-	bind(s, (struct sockaddr *)&server, sizeof(server));
-	/*if (bind(s, (struct sockaddr *)&server, sizeof(server)) == SOCKET_ERROR)
+	if (::bind(s, (struct sockaddr *)&server, sizeof(server)) == SOCKET_ERROR) // use global namespace by ::
 	{
 		printf("Bind failed with error code : %d", WSAGetLastError());
 		exit(EXIT_FAILURE);
 	}
-	puts("Bind done");*/
+	puts("Bind done");
 
 }
 
@@ -66,7 +65,7 @@ void Socket::SendData(int Port,const char* DestAddr)
 
 	while (1)
 	{
-		std::this_thread::sleep_for(milliseconds(20));
+		std::this_thread::sleep_for(milliseconds(2000));
 		for (int i = 0; i < BUFLEN / 2;i++)
 		{
 			data[2 * i] = i;
@@ -96,6 +95,9 @@ void Socket::ReceiveData()
 {
 	int recv_len,slen; // can be read from packet
 	struct sockaddr_in si_other; // can be read from packet
+
+	slen = sizeof(si_other);
+
 	while (1)
 	{
 		printf("Waiting for data...");
@@ -107,8 +109,8 @@ void Socket::ReceiveData()
 		//try to receive some data, this is a blocking call
 		if ((recv_len = recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen)) == SOCKET_ERROR)
 		{
-			printf("recvfrom() failed with error code : %d", WSAGetLastError());
-			exit(EXIT_FAILURE);
+			printf("recvfrom() failed with error code : %d\n", WSAGetLastError());
+			//exit(EXIT_FAILURE);
 		}
 
 		//print details of the client/peer and the data received

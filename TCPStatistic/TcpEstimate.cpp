@@ -27,5 +27,4 @@ void RTTTest()
 	else {
 		printf("Error: %ld\n", GetLastError());
 	}
-	getchar();
 }

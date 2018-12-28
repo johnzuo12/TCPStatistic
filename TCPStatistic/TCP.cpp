@@ -5,13 +5,14 @@
 #include <ws2tcpip.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string>
 
 // Need to link with Ws2_32.lib
 #pragma comment (lib, "Ws2_32.lib")
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment (lib, "AdvApi32.lib")
 
-#define SERVER "169.254.243.161"  //ip address of TCP server
+#define SERVER "169.254.170.82"  //ip address of TCP server
 #define BUFLEN 256  //Max length of buffer
 #define PORT 55005   //The port on which to listen for incoming data
 
@@ -25,7 +26,7 @@ void TCPServer()
 	SOCKET ListenSocket = INVALID_SOCKET;
 	SOCKET ClientSocket = INVALID_SOCKET;
 
-	struct sockaddr_in server;
+	struct sockaddr_in server,client;
 	char recvbuf[BUFLEN];
 	int recvbuflen = BUFLEN;
 
@@ -38,6 +39,7 @@ void TCPServer()
 
 	// Create a SOCKET for connecting to server
 	ListenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	printf("listen num %d\n", ListenSocket);
 	if (ListenSocket == INVALID_SOCKET) {
 		printf("socket failed with error: %ld\n", WSAGetLastError());
 		WSACleanup();
@@ -45,7 +47,7 @@ void TCPServer()
 	}
 
 	server.sin_family = AF_INET;
-	server.sin_addr.s_addr = inet_addr(SERVER);
+	server.sin_addr.s_addr = INADDR_ANY;
 	server.sin_port = htons(PORT);
 
 	// Setup the TCP listening socket
@@ -64,15 +66,22 @@ void TCPServer()
 		WSACleanup();
 		return;
 	}
+	
+	client.sin_family = AF_INET;
+	client.sin_addr.s_addr = INADDR_ANY;
+	client.sin_port = htons(PORT);	
+
+	int client_size = sizeof(client);
 
 	// Accept a client socket
-	ClientSocket = accept(ListenSocket, NULL, NULL);
+	ClientSocket = accept(ListenSocket, (struct sockaddr *)&client, &client_size);
 	if (ClientSocket == INVALID_SOCKET) {
 		printf("accept failed with error: %d\n", WSAGetLastError());
 		closesocket(ListenSocket);
 		WSACleanup();
 		return;
 	}
+	else printf("ClientSocket num %d\n", (int)ClientSocket);
 
 	// No longer need server socket
 	closesocket(ListenSocket);
@@ -83,6 +92,8 @@ void TCPServer()
 		iResult = recv(ClientSocket, recvbuf, recvbuflen, 0);
 		if (iResult > 0) {
 			printf("Bytes received: %d\n", iResult);
+			printf("received info: %s\n",recvbuf);
+
 
 			//// Echo the buffer back to the sender
 			//iSendResult = send(ClientSocket, recvbuf, iResult, 0);
@@ -121,16 +132,15 @@ void TCPServer()
 	return;
 }
 
-//int __cdecl main(int argc, char **argv)
 void TCPClient()
 {
 	WSADATA wsaData;
 	SOCKET ConnectSocket = INVALID_SOCKET;
 	struct  sockaddr_in server;
-	char recvbuf[BUFLEN],sendbuf[BUFLEN];
+	char recvbuf[BUFLEN];
+	std::string sendinfo;
 	int iResult;
 	int recvbuflen = BUFLEN;
-	int j = 0;
 
 	// Initialize Winsock
 	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -154,23 +164,14 @@ void TCPClient()
 	iResult = connect(ConnectSocket, (struct sockaddr *)&server, sizeof(server));
 	if (iResult == SOCKET_ERROR) {
 		closesocket(ConnectSocket);
-		ConnectSocket = INVALID_SOCKET;
-	}
-
-	if (ConnectSocket == INVALID_SOCKET) {
 		printf("Unable to connect to server!\n");
 		WSACleanup();
 		return;
 	}
+	printf("connected\n");
 
-	for (int i = 0; i < BUFLEN / 2;i++)
-	{
-		sendbuf[2 * i] = i + j;
-		sendbuf[2 * i + 1] = i + j;
-	}
-	j++;
-	// Send an initial buffer
-	iResult = send(ConnectSocket, sendbuf, (int)strlen(sendbuf), 0);
+	sendinfo = "just for test";
+	iResult = send(ConnectSocket, sendinfo.c_str(), sendinfo.length(), 0);
 	if (iResult == SOCKET_ERROR) {
 		printf("send failed with error: %d\n", WSAGetLastError());
 		closesocket(ConnectSocket);

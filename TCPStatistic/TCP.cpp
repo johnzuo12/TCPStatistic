@@ -29,6 +29,7 @@ void TCPServer()
 	struct sockaddr_in server,client;
 	char recvbuf[BUFLEN];
 	int recvbuflen = BUFLEN;
+	std::string recvinfo;
 
 	// Initialize Winsock
 	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -92,7 +93,8 @@ void TCPServer()
 		iResult = recv(ClientSocket, recvbuf, recvbuflen, 0);
 		if (iResult > 0) {
 			printf("Bytes received: %d\n", iResult);
-			printf("received info: %s\n",recvbuf);
+			recvinfo.assign(recvbuf,iResult);
+			printf("received info: %s\n",recvinfo.c_str());
 
 
 			//// Echo the buffer back to the sender

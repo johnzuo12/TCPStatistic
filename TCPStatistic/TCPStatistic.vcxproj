@@ -148,13 +148,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="TCP.cpp" />
+    <ClCompile Include="TcpEstimate.cpp" />
     <ClCompile Include="TCPStatistic.cpp" />
-    <ClCompile Include="Socket.cpp" />
+    <ClCompile Include="UDP.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
-    <ClInclude Include="Socket.h" />
-    <ClInclude Include="TCPStatistic.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

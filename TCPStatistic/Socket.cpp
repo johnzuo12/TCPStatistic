@@ -12,6 +12,7 @@ using namespace std;
 Socket::Socket(int Port, const char* Addr, IPPROTO Soctype)
 {
 	WSADATA wsa;
+	int Socktype;
 
 	//Initialise winsock
 	printf("\nInitialising Winsock...");
@@ -23,29 +24,20 @@ Socket::Socket(int Port, const char* Addr, IPPROTO Soctype)
 	printf("Initialised.\n");
 
 
-	Portnum = Port;
+	portnum = Port;
+	soctype = Soctype;
+
 	memcpy_s(addr, strlen(Addr), Addr, strlen(Addr));
 	
 
 	//Create a socket
-	if ((s = socket(AF_INET, SOCK_DGRAM, Soctype)) == INVALID_SOCKET)
+	if (soctype == IPPROTO_TCP) Socktype = SOCK_STREAM;
+	else Socktype = SOCK_DGRAM;
+	if ((s = socket(AF_INET, Socktype, soctype)) == INVALID_SOCKET)
 	{                                                    
 		printf("Could not create socket : %d", WSAGetLastError());
 	}
 	printf("Socket created.\n");
-
-	//Prepare the sockaddr_in structure
-	server.sin_family = AF_INET;
-	server.sin_addr.s_addr = INADDR_ANY;
-	server.sin_port = htons(Portnum);
-
-	//Bind
-	if (::bind(s, (struct sockaddr *)&server, sizeof(server)) == SOCKET_ERROR) // use global namespace by ::
-	{
-		printf("Bind failed with error code : %d", WSAGetLastError());
-		exit(EXIT_FAILURE);
-	}
-	puts("Bind done");
 
 }
 
@@ -94,10 +86,41 @@ void Socket::SendData(int Port,const char* DestAddr)
 void Socket::ReceiveData()
 {
 	int recv_len,slen; // can be read from packet
-	struct sockaddr_in si_other; // can be read from packet
+	struct sockaddr_in server,si_other; // can be read from packet
+	SOCKET ClientSocket; // connecting socket in TCP
 
 	slen = sizeof(si_other);
 
+	//Prepare the sockaddr_in structure
+	server.sin_family = AF_INET;
+	server.sin_addr.s_addr = INADDR_ANY;
+	server.sin_port = htons(portnum);
+
+	//Bind
+	if (::bind(s, (struct sockaddr *)&server, sizeof(server)) == SOCKET_ERROR) // use global namespace by ::
+	{
+		printf("Bind failed with error code : %d", WSAGetLastError());
+		exit(EXIT_FAILURE);
+	}
+	puts("Bind done");
+
+	if (soctype == IPPROTO_TCP) {
+
+		if (listen(s, SOMAXCONN) == SOCKET_ERROR)
+		{
+			printf("listen failed with error code : %d\n", WSAGetLastError());
+			exit(EXIT_FAILURE);
+		}
+
+		ClientSocket = accept(s, NULL, NULL);
+		if (ClientSocket == INVALID_SOCKET) {
+			printf("accept failed with error: %d\n", WSAGetLastError());
+			exit(EXIT_FAILURE);
+		}
+
+		// No longer need server socket, use ClientSocket to continue connection 
+		closesocket(s);
+	}
 	while (1)
 	{
 		printf("Waiting for data...");
@@ -107,18 +130,40 @@ void Socket::ReceiveData()
 		memset(buf, '\0', BUFLEN);
 
 		//try to receive some data, this is a blocking call
-		if ((recv_len = recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen)) == SOCKET_ERROR)
+		if ((recv_len = recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen)) > 0) //no error in receiving
 		{
-			printf("recvfrom() failed with error code : %d\n", WSAGetLastError());
-			//exit(EXIT_FAILURE);
+			printf("Received packet from %s:%d\n", inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
+			uint16_t data[BUFLEN / 2];
+			printf("Data: ");
+
+			uint8_t x1 = 0;
+			uint8_t x2 = 0;
+
+			for (int i = 0;i < BUFLEN / 2;i++)
+			{
+				x1 = buf[2 * i];
+				x2 = buf[2 * i + 1];
+				data[i] = x1 * 256 + x2;
+				printf("%d ", data[i]);
+			}
+			printf("\n");
 		}
 
-		//print details of the client/peer and the data received
-		printf("Received packet from %s:%d\n", inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
-		printf("%s\n", buf);
+		else  if ((recv_len = recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen)) = SOCKET_ERROR)
+		{
+			printf("recvfrom() failed with error code : %d\n", WSAGetLastError());
+			exit(EXIT_FAILURE);
+		}
+		else
+		{
+			printf("Connection closing...\n"); //recv_len=0;
+			return;
+		}
+		
 	}
 
-	closesocket(s);
+	if (soctype == IPPROTO_TCP) closesocket(ClientSocket);
+	else closesocket(s);
 	WSACleanup();
 
 	return;

@@ -6,11 +6,11 @@
 class Socket
 {
 private:
-	int Portnum;
+	int portnum;
 	char addr[17];
 	char buf[BUFLEN];
 	SOCKET s;
-	struct sockaddr_in server;
+	IPPROTO soctype;
 public:	
 	Socket(int Port, const char* Addr, IPPROTO Soctype);
 	void SendData(int Port, const char* DestAddr);

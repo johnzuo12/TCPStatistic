@@ -5,7 +5,10 @@
 #include <ws2tcpip.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <thread>
 #include <string>
+#include <iostream>
+#include <sstream>
 
 // Need to link with Ws2_32.lib
 #pragma comment (lib, "Ws2_32.lib")
@@ -140,9 +143,11 @@ void TCPClient()
 	SOCKET ConnectSocket = INVALID_SOCKET;
 	struct  sockaddr_in server;
 	char recvbuf[BUFLEN];
-	std::string sendinfo;
+	std::string info,sendinfo;
 	int iResult;
 	int recvbuflen = BUFLEN;
+	using namespace std::chrono;
+	using system_time = steady_clock;
 
 	// Initialize Winsock
 	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -172,16 +177,22 @@ void TCPClient()
 	}
 	printf("connected\n");
 
-	sendinfo = "just for test";
-	iResult = send(ConnectSocket, sendinfo.c_str(), sendinfo.length(), 0);
-	if (iResult == SOCKET_ERROR) {
-		printf("send failed with error: %d\n", WSAGetLastError());
-		closesocket(ConnectSocket);
-		WSACleanup();
-		return;
+	info = "just for test #";
+	int seq = 0;
+	while (1)
+	{
+		std::this_thread::sleep_for(milliseconds(20));
+		sendinfo = info + std::to_string(seq);
+		iResult = send(ConnectSocket, sendinfo.c_str(), sendinfo.length(), 0);
+		if (iResult == SOCKET_ERROR) {
+			printf("send failed with error: %d\n", WSAGetLastError());
+			closesocket(ConnectSocket);
+			WSACleanup();
+			return;
+		}
+		printf("Bytes Sent: %ld\n", iResult);
+		seq++;
 	}
-
-	printf("Bytes Sent: %ld\n", iResult);
 
 	// shutdown the connection since no more data will be sent
 	iResult = shutdown(ConnectSocket, SD_SEND);

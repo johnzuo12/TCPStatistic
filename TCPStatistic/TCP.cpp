@@ -167,6 +167,11 @@ void TCPClient()
 		WSACleanup();
 		return;
 	}
+	//turn off Nagel algorithm
+	int i = 1;
+	setsockopt(ConnectSocket, IPPROTO_TCP, TCP_NODELAY, (char *)&i, sizeof(i));
+
+
 	// Connect to server.
 	iResult = connect(ConnectSocket, (struct sockaddr *)&server, sizeof(server));
 	if (iResult == SOCKET_ERROR) {

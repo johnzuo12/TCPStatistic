@@ -85,323 +85,51 @@ LPCWSTR estatsTypeNames[] = {
 	L"TcpConnectionEstatsMaximum"
 };
 
-
-// Function prototypes
-
-
-// Run tests for IPv4 or IPv4 TCP extended stats
-void RunEstatsTest();//bool v6);
-
-
 // Get an IPv4 TCP row entry
 DWORD GetTcpRow(u_short localPort, u_short remotePort,
 	MIB_TCP_STATE state, __out PMIB_TCPROW row);
 
-
-//// Get an IPv6 TCP row entry
-//DWORD GetTcp6Row(u_short localPort, u_short remotePort,
-//	MIB_TCP_STATE state, __out PMIB_TCP6ROW row);
-
-
 // Enable or disable the supplied Estat type on a TCP connection
-void ToggleEstat(PVOID row, TCP_ESTATS_TYPE type, bool enable);//, bool v6);
+void ToggleEstat(PVOID row, TCP_ESTATS_TYPE type, bool enable);
 
 
 // Toggle all Estats for a TCP connection
-void ToggleAllEstats(void *row, bool enable);//, bool v6);
+void ToggleAllEstats(void *row, bool enable);
 
 
 // Dump the supplied Estate type data on the given TCP connection row
-void GetAndOutputEstats(void *row, TCP_ESTATS_TYPE type);//, bool v6);
+void GetAndOutputEstats(void *row, TCP_ESTATS_TYPE type);
 
-
-//
-void GetAllEstats(void *row);//, bool v6);
-
-
-// Creates a TCP server and client socket on the loopback address.
-// Binds the server socket to a port.
-// Establishes a client TCP connection to the server
-//int CreateTcpConnection(bool v6, SOCKET * serviceSocket, SOCKET * clientSocket,
-//	SOCKET * acceptSocket, u_short * serverPort,
-//	u_short * clientPort);
-
-
-//void TCPConnectionTest()
-//{
-//	//RunEstatsTest(FALSE);
-//	RunEstatsTest();//TRUE);
-//	return;
-//}
-
+// Dump all Estate type data on the given TCP connection row
+void GetAllEstats(void *row);
 
 //
 // Create connect and listen sockets on loopback interface and dump all Estats
 // types on the created TCP connections for the supplied IP address type.
 //
-void RunEstatsTest()//bool v6)
+void RunEstatsTest()
 {
-	//SOCKET serviceSocket, clientSocket, acceptSocket;
-	//serviceSocket = clientSocket = acceptSocket = INVALID_SOCKET;
-	MIB_TCPROW Connect4Row;//, clientConnectRow;
-	//MIB_TCP6ROW server6ConnectRow, client6ConnectRow;
-	void *ConnectRow;//, *clientConnectRow = NULL;
-	//bool bWSAStartup = false;
+	MIB_TCPROW Connect4Row;
+	void *ConnectRow;
 
-	/*char *buff = (char *)malloc(1000);
-	if (buff == NULL) {
-		wprintf(L"\nFailed to allocate memory.");
-		goto bail;
-	}*/
-
-	/*if (v6) {
-		serverConnectRow = &server6ConnectRow;
-		clientConnectRow = &client6ConnectRow;
-	}
-	else {*/
-		/*serverConnectRow = &server4ConnectRow;
-		clientConnectRow = &client4ConnectRow;*/
-	//}
 	ConnectRow = &Connect4Row;
 	UINT winStatus;
 
-	//int sockStatus;
-	/*u_short serverPort, clientPort;*/
-
-	//
-	// Initialize Winsock.
-	//
-	/*WSADATA wsaData;
-	winStatus = WSAStartup(MAKEWORD(2, 2), &wsaData);
-	if (winStatus != ERROR_SUCCESS) {
-		wprintf(L"\nFailed to open winsock. Error %d", winStatus);
-		goto bail;
-	}
-
-	bWSAStartup = true;*/
-
-	//
-	// Create TCP connection on which Estats information will be collected.
-	// Obtain port numbers of created connections.
-	//
-	/*winStatus =
-		CreateTcpConnection(v6, &serviceSocket, &clientSocket, &acceptSocket,
-			&serverPort, &clientPort);
-	if (winStatus != ERROR_SUCCESS) {
-		wprintf(L"\nFailed to create TCP connection. Error %d", winStatus);
-		goto bail;
-	}*/
-	//
-	// Obtain MIB_TCPROW corresponding to the TCP connection.
-	//
-	//winStatus = v6 ?
-		//GetTcp6Row(serverPort, clientPort, MIB_TCP_STATE_ESTAB,
-		//(PMIB_TCP6ROW)serverConnectRow) :
-	//std::this_thread::sleep_for(seconds(10)); //wait for the TCP connnection to establish
+	std::this_thread::sleep_for(seconds(10)); //wait for the TCP connnection to establish
 	do 
-	winStatus=GetTcpRow(TCPPORT, TCPPORT, MIB_TCP_STATE_ESTAB,(PMIB_TCPROW)ConnectRow);
+	winStatus=GetTcpRow(TCPSERVERPORT, TCPCLIENTPORT, MIB_TCP_STATE_ESTAB,(PMIB_TCPROW)ConnectRow);
 	while (winStatus != ERROR_SUCCESS);  //wait until the connection is established
-	//if (winStatus != ERROR_SUCCESS) {
-	//	wprintf
-	//	(L"\nGetTcpRow failed on the server established connection with %d",
-	//		winStatus);
-	//	//goto bail;
-	//}
+	
+	ToggleAllEstats(ConnectRow, TRUE);
+	
+	wprintf(L"\n\n\nDumping Estats for server socket after sending data:\n");
+	GetAllEstats(ConnectRow);
+	ToggleAllEstats(ConnectRow, FALSE);
 
-	//winStatus = v6 ?
-		//GetTcp6Row(clientPort, serverPort, MIB_TCP_STATE_ESTAB,
-		//(PMIB_TCP6ROW)clientConnectRow) :
-	/*GetTcpRow(clientPort, serverPort, MIB_TCP_STATE_ESTAB,(PMIB_TCPROW)clientConnectRow);
-	if (winStatus != ERROR_SUCCESS) {
-		wprintf
-		(L"\nGetTcpRow failed on the client established connection with %d",
-			winStatus);
-		goto bail;
-	}*/
-	//
-	// Enable Estats collection and dump current stats.
-	//
-	//ToggleAllEstats(ConnectRow, TRUE);//, v6);
-	//ToggleAllEstats(clientConnectRow, TRUE);//, v6);
-	//wprintf(L"\n\n\nDumping Estats for server socket:\n");
-	//GetAllEstats(ConnectRow);//, v6);
-	//wprintf(L"\n\n\nDumping Estats for client connect socket:\n");
-	//GetAllEstats(clientConnectRow);//, v6);
-
-	//
-	// Initiate TCP data transfers to see effect on Estats counters.
-	//
-	/*sockStatus = send(clientSocket, buff, (int)(1000 * sizeof(char)), 0);
-	if (sockStatus == SOCKET_ERROR) {
-		wprintf(L"\nFailed to send from client to server %d",
-			WSAGetLastError());
-	}
-	else {
-		sockStatus = recv(acceptSocket, buff, (int)(1000 * sizeof(char)), 0);
-		if (sockStatus == SOCKET_ERROR) {
-			wprintf(L"\nFailed to receive data on the server %d",
-				WSAGetLastError());
-		}
-	}*/
-
-	//
-	// Dump updated Estats and disable Estats collection.
-	//
-	wprintf
-	(L"\n\n\nDumping Estats for server socket after sending data:\n");
-	GetAllEstats(ConnectRow);//, v6);
-	//wprintf
-	//(L"\n\n\nDumping Estats for client socket after client sends data:\n");
-	//GetAllEstats(clientConnectRow);//, v6);
-	ToggleAllEstats(ConnectRow, FALSE);//, v6);
-	//ToggleAllEstats(clientConnectRow, FALSE);//, v6);
-
-//bail:
-//	if (serviceSocket != INVALID_SOCKET)
-//		closesocket(serviceSocket);
-//	if (clientSocket != INVALID_SOCKET)
-//		closesocket(clientSocket);
-//	if (acceptSocket != INVALID_SOCKET)
-//		closesocket(acceptSocket);
-//	if (buff != NULL)
-//		free(buff);
-//	if (bWSAStartup)
-//		WSACleanup();
-	return;// ERROR_SUCCESS;
+	return;
 }
 
-
-//int CreateTcpConnection(bool v6,
-//	SOCKET * serviceSocket,
-//	SOCKET * clientSocket,
-//	SOCKET * acceptSocket,
-//	u_short * serverPort, u_short * clientPort)
-//{
-//	INT status;
-//	ADDRINFOW hints, *localhost = NULL;
-//	LPCWSTR loopback;
-//	loopback = v6 ? L"::1" : L"127.0.0.1";
-//	int aiFamily = v6 ? AF_INET6 : AF_INET;
-//
-//	*serviceSocket = INVALID_SOCKET;
-//	*clientSocket = INVALID_SOCKET;
-//	*acceptSocket = INVALID_SOCKET;
-//
-//	ZeroMemory(&hints, sizeof(hints));
-//	hints.ai_family = aiFamily;
-//	hints.ai_socktype = SOCK_STREAM;
-//	hints.ai_protocol = IPPROTO_TCP;
-//
-//	status = GetAddrInfoW(loopback, L"", &hints, &localhost);
-//	if (status != ERROR_SUCCESS) {
-//		wprintf(L"\nFailed to open localhost. Error %d", status);
-//		goto bail;
-//	}
-//
-//	*serviceSocket = socket(aiFamily, SOCK_STREAM, IPPROTO_TCP);
-//	if (*serviceSocket == INVALID_SOCKET) {
-//		wprintf(L"\nFailed to create server socket. Error %d",
-//			WSAGetLastError());
-//		goto bail;
-//	}
-//
-//	*clientSocket = socket(aiFamily, SOCK_STREAM, IPPROTO_TCP);
-//	if (*clientSocket == INVALID_SOCKET) {
-//		wprintf(L"\nFailed to create client socket. Error %d",
-//			WSAGetLastError());
-//		goto bail;
-//	}
-//
-//	status =
-//		bind(*serviceSocket, localhost->ai_addr, (int)localhost->ai_addrlen);
-//	if (status == SOCKET_ERROR) {
-//		wprintf(L"\nFailed to bind server socket to loopback. Error %d",
-//			WSAGetLastError());
-//		goto bail;
-//	}
-//
-//	if (localhost != NULL) {
-//		FreeAddrInfoW(localhost);
-//		localhost = NULL;
-//	}
-//
-//	SOCKADDR_STORAGE serverSockName, clientSockName;
-//	int nameLen;
-//	nameLen = sizeof(SOCKADDR_STORAGE);
-//	status = getsockname(*serviceSocket,
-//		(sockaddr *)& serverSockName, &nameLen);
-//	if (status == SOCKET_ERROR) {
-//		wprintf(L"\ngetsockname failed %d", WSAGetLastError());
-//		goto bail;
-//	}
-//	if (v6) {
-//		*serverPort = ((sockaddr_in6 *)(&serverSockName))->sin6_port;
-//	}
-//	else {
-//		*serverPort = ((sockaddr_in *)(&serverSockName))->sin_port;
-//	}
-//
-//	status = listen(*serviceSocket, SOMAXCONN);
-//	if (status == SOCKET_ERROR) {
-//		wprintf(L"\nFailed to listen on server socket. Error %d",
-//			WSAGetLastError());
-//		goto bail;
-//	}
-//
-//	status =
-//		connect(*clientSocket, (sockaddr *)& serverSockName,
-//		(int) sizeof(SOCKADDR_STORAGE));
-//	if (status == SOCKET_ERROR) {
-//		wprintf(L"\nCould not connect client and server sockets %d",
-//			WSAGetLastError());
-//		goto bail;
-//	}
-//
-//	status = getsockname(*clientSocket,
-//		(sockaddr *)& clientSockName, &nameLen);
-//	if (status == SOCKET_ERROR) {
-//		wprintf(L"\ngetsockname failed %d", WSAGetLastError());
-//		goto bail;
-//	}
-//	if (v6) {
-//		*clientPort = ((sockaddr_in6 *)(&clientSockName))->sin6_port;
-//	}
-//	else {
-//		*clientPort = ((sockaddr_in *)(&clientSockName))->sin_port;
-//	}
-//
-//	*acceptSocket = accept(*serviceSocket, NULL, NULL);
-//	if (*acceptSocket == INVALID_SOCKET) {
-//		wprintf(L"\nFailed to accept socket connection %d", WSAGetLastError());
-//		goto bail;
-//	}
-//
-//	return ERROR_SUCCESS;
-//
-//bail:
-//	if (localhost != NULL)
-//		FreeAddrInfoW(localhost);
-//	if (*serviceSocket != INVALID_SOCKET) {
-//		closesocket(*serviceSocket);
-//		*serviceSocket = INVALID_SOCKET;
-//	}
-//
-//	if (*clientSocket != INVALID_SOCKET) {
-//		closesocket(*clientSocket);
-//		*clientSocket = INVALID_SOCKET;
-//	}
-//
-//	if (*acceptSocket != INVALID_SOCKET) {
-//		closesocket(*acceptSocket);
-//		*acceptSocket = INVALID_SOCKET;
-//	}
-//
-//	return status;
-//
-//}
-
-
-void GetAllEstats(void *row)//, bool v6)
+void GetAllEstats(void *row)
 {
 	GetAndOutputEstats(row, TcpConnectionEstatsSynOpts);//, v6);
 	GetAndOutputEstats(row, TcpConnectionEstatsData);//, v6);
@@ -414,11 +142,6 @@ void GetAllEstats(void *row)//, bool v6)
 	GetAndOutputEstats(row, TcpConnectionEstatsFineRtt);//, v6);
 }
 
-
-//
-// Returns a MIB_TCPROW corresponding to the local port, remote port and state
-// filter parameters.
-//
 DWORD
 GetTcpRow(u_short localPort,
 	u_short remotePort, MIB_TCP_STATE state, __out PMIB_TCPROW row)
@@ -444,18 +167,17 @@ GetTcpRow(u_short localPort,
 		return status;
 	}
 
+	//ntohs() converts a u_short from TCP/IP network byte order to host byte order
 	for (i = 0; i < tcpTable->dwNumEntries; i++) {
 		tcpRowIt = &tcpTable->table[i];
-		if (tcpRowIt->dwLocalPort == (DWORD)localPort &&
-		tcpRowIt->dwRemotePort == (DWORD)remotePort &&
+		if (ntohs(tcpRowIt->dwLocalPort) == (DWORD)localPort &&
+		ntohs(tcpRowIt->dwRemotePort) == (DWORD)remotePort &&
 		tcpRowIt->State == state) {
 			connectionFound = TRUE;
 			*row = *tcpRowIt;
 			break;
 		}
-		printf("try to find connection\n");
 	}
-
 	free(tcpTable);
 
 	if (connectionFound) {
@@ -467,62 +189,10 @@ GetTcpRow(u_short localPort,
 
 }
 
-
-////
-//// Returns a MIB_TCP6ROW corresponding to the local port, remote port and state
-//// filter parameters. This is a v6 equivalent of the GetTcpRow function.
-////
-//DWORD
-//GetTcp6Row(u_short localPort,
-//	u_short remotePort, MIB_TCP_STATE state, __out PMIB_TCP6ROW row)
-//{
-//	PMIB_TCP6TABLE tcp6Table = NULL;
-//	PMIB_TCP6ROW tcp6RowIt = NULL;
-//	DWORD status, size = 0, i;
-//	bool connectionFound = FALSE;
-//
-//	status = GetTcp6Table(tcp6Table, &size, TRUE);
-//	if (status != ERROR_INSUFFICIENT_BUFFER) {
-//		return status;
-//	}
-//
-//	tcp6Table = (PMIB_TCP6TABLE)malloc(size);
-//	if (tcp6Table == NULL) {
-//		return ERROR_OUTOFMEMORY;
-//	}
-//
-//	status = GetTcp6Table(tcp6Table, &size, TRUE);
-//	if (status != ERROR_SUCCESS) {
-//		free(tcp6Table);
-//		return status;
-//	}
-//
-//	for (i = 0; i < tcp6Table->dwNumEntries; i++) {
-//		tcp6RowIt = &tcp6Table->table[i];
-//		if (tcp6RowIt->dwLocalPort == (DWORD)localPort &&
-//		tcp6RowIt->dwRemotePort == (DWORD)remotePort &&
-//		tcp6RowIt->State == state) {
-//			connectionFound = TRUE;
-//			*row = *tcp6RowIt;
-//			break;
-//		}
-//	}
-//
-//	free(tcp6Table);
-//
-//	if (connectionFound) {
-//		return ERROR_SUCCESS;
-//	}
-//	else {
-//		return ERROR_NOT_FOUND;
-//	}
-//
-//}
-
 //
 // Enable or disable the supplied Estat type on a TCP connection.
 //
-void ToggleEstat(PVOID row, TCP_ESTATS_TYPE type, bool enable)//, bool v6)
+void ToggleEstat(PVOID row, TCP_ESTATS_TYPE type, bool enable)
 {
 	TCP_BOOLEAN_OPTIONAL operation =
 		enable ? TcpBoolOptEnabled : TcpBoolOptDisabled;
@@ -592,24 +262,13 @@ void ToggleEstat(PVOID row, TCP_ESTATS_TYPE type, bool enable)//, bool v6)
 			break;
 		}
 
-	/*if (v6) {
-		status = SetPerTcp6ConnectionEStats((PMIB_TCP6ROW)row, type,
-			rw, 0, size, 0);
-	}
-	else {*/
 	status = SetPerTcpConnectionEStats((PMIB_TCPROW)row, type, rw, 0, size, 0);
-	//}
 
-	if (status != NO_ERROR) {
-		/*if (v6)
-			wprintf(L"\nSetPerTcp6ConnectionEStats %s %s failed. status = %d",
-				estatsTypeNames[type], enable ? L"enabled" : L"disabled",
-				status);
-		else*/
+
+	if (status != NO_ERROR)
 	wprintf(L"\nSetPerTcpConnectionEStats %s %s failed. status = %d",
 			estatsTypeNames[type], enable ? L"enabled" : L"disabled",
 			status);
-	}
 
 }
 
@@ -617,23 +276,23 @@ void ToggleEstat(PVOID row, TCP_ESTATS_TYPE type, bool enable)//, bool v6)
 //
 // Toggle all Estats for a TCP connection.
 //
-void ToggleAllEstats(void *row, bool enable)//, bool v6)
+void ToggleAllEstats(void *row, bool enable)
 {
-	ToggleEstat(row, TcpConnectionEstatsData, enable);//, v6);
-	ToggleEstat(row, TcpConnectionEstatsSndCong, enable);//, v6);
-	ToggleEstat(row, TcpConnectionEstatsPath, enable);//, v6);
-	ToggleEstat(row, TcpConnectionEstatsSendBuff, enable);//, v6);
-	ToggleEstat(row, TcpConnectionEstatsRec, enable);//, v6);
-	ToggleEstat(row, TcpConnectionEstatsObsRec, enable);//, v6);
-	ToggleEstat(row, TcpConnectionEstatsBandwidth, enable);//, v6);
-	ToggleEstat(row, TcpConnectionEstatsFineRtt, enable);//, v6);
+	ToggleEstat(row, TcpConnectionEstatsData, enable);
+	ToggleEstat(row, TcpConnectionEstatsSndCong, enable);
+	ToggleEstat(row, TcpConnectionEstatsPath, enable);
+	ToggleEstat(row, TcpConnectionEstatsSendBuff, enable);
+	ToggleEstat(row, TcpConnectionEstatsRec, enable);
+	ToggleEstat(row, TcpConnectionEstatsObsRec, enable);
+	ToggleEstat(row, TcpConnectionEstatsBandwidth, enable);
+	ToggleEstat(row, TcpConnectionEstatsFineRtt, enable);
 }
 
 
 //
 // Dump the supplied Estate type on the given TCP connection row.
 //
-void GetAndOutputEstats(void *row, TCP_ESTATS_TYPE type)//, bool v6)
+void GetAndOutputEstats(void *row, TCP_ESTATS_TYPE type)
 {
 	ULONG rosSize = 0, rodSize = 0;
 	ULONG winStatus;
@@ -705,30 +364,15 @@ void GetAndOutputEstats(void *row, TCP_ESTATS_TYPE type)//, bool v6)
 			memset(rod, 0, rodSize); // zero the buffer
 	}
 
-	/*if (v6) {
-		winStatus = GetPerTcp6ConnectionEStats((PMIB_TCP6ROW)row,
-			type,
-			NULL, 0, 0,
-			ros, 0, rosSize,
-			rod, 0, rodSize);
-	}
-	else {*/
 	winStatus = GetPerTcpConnectionEStats((PMIB_TCPROW)row,
-			type,
-			NULL, 0, 0,
-			ros, 0, rosSize, rod, 0, rodSize);
-	//}
+		type,
+		NULL, 0, 0,
+		ros, 0, rosSize, rod, 0, rodSize);
 
-	if (winStatus != NO_ERROR) {
-		/*if (v6)
-			wprintf(L"\nGetPerTcp6ConnectionEStats %s failed. status = %d",
-				estatsTypeNames[type],
-				winStatus);
-		else*/
-	wprintf(L"\nGetPerTcpConnectionEStats %s failed. status = %d",
-				estatsTypeNames[type],
-				winStatus);
-	}
+	if (winStatus != NO_ERROR)
+		wprintf(L"\nGetPerTcpConnectionEStats %s failed. status = %d",
+			estatsTypeNames[type],
+			winStatus);
 	else {
 		switch (type) {
 		case TcpConnectionEstatsSynOpts:

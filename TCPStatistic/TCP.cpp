@@ -88,9 +88,9 @@ void TCPServer()
 
 		iResult = recv(ClientSocket, recvbuf, recvbuflen, 0);
 		if (iResult > 0) {
-			printf("Bytes received: %d\n", iResult);
+			//printf("Bytes received: %d\n", iResult);
 			recvinfo.assign(recvbuf,iResult);
-			printf("received info: %s\n",recvinfo.c_str());
+			//printf("received info: %s\n",recvinfo.c_str());
 
 
 			//// Echo the buffer back to the sender

@@ -4,6 +4,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <stdlib.h>
+#include "resource.h"
 #include <stdio.h>
 #include <thread>
 #include <string>
@@ -14,10 +15,6 @@
 #pragma comment (lib, "Ws2_32.lib")
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment (lib, "AdvApi32.lib")
-
-#define SERVER "169.254.170.82"  //ip address of TCP server
-#define BUFLEN 256  //Max length of buffer
-#define PORT 55005   //The port on which to listen for incoming data
 
 #pragma warning(disable : 4996)
 
@@ -52,7 +49,7 @@ void TCPServer()
 
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = INADDR_ANY;
-	server.sin_port = htons(PORT);
+	server.sin_port = htons(TCPSERVERPORT);
 
 	// Setup the TCP listening socket
 	iResult = bind(ListenSocket, (struct sockaddr *)&server, sizeof(server));
@@ -71,10 +68,6 @@ void TCPServer()
 		return;
 	}
 	
-	client.sin_family = AF_INET;
-	client.sin_addr.s_addr = INADDR_ANY;
-	client.sin_port = htons(PORT);	
-
 	int client_size = sizeof(client);
 
 	// Accept a client socket
@@ -141,7 +134,7 @@ void TCPClient()
 {
 	WSADATA wsaData;
 	SOCKET ConnectSocket = INVALID_SOCKET;
-	struct  sockaddr_in server;
+	struct  sockaddr_in server,client;
 	char recvbuf[BUFLEN];
 	std::string info,sendinfo;
 	int iResult;
@@ -158,7 +151,7 @@ void TCPClient()
 
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = inet_addr(SERVER);
-	server.sin_port = htons(PORT);
+	server.sin_port = htons(TCPSERVERPORT);
 
 	// Create a SOCKET for connecting to server
 	ConnectSocket = socket(AF_INET, SOCK_STREAM,IPPROTO_TCP);
@@ -171,6 +164,17 @@ void TCPClient()
 	int i = 1;
 	setsockopt(ConnectSocket, IPPROTO_TCP, TCP_NODELAY, (char *)&i, sizeof(i));
 
+	//specify a port num for client
+	client.sin_family = AF_INET;
+	client.sin_addr.s_addr = inet_addr(CLIENT);
+	client.sin_port = htons(TCPCLIENTPORT);	
+	iResult = bind(ConnectSocket, (struct sockaddr *)&client, sizeof(client));
+	if (iResult == SOCKET_ERROR) {
+		printf("bind failed with error: %d\n", WSAGetLastError());
+		closesocket(ConnectSocket);
+		WSACleanup();
+		return;
+	}
 
 	// Connect to server.
 	iResult = connect(ConnectSocket, (struct sockaddr *)&server, sizeof(server));

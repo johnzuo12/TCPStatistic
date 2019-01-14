@@ -115,7 +115,7 @@ void RunEstatsTest()
 	ConnectRow = &Connect4Row;
 	UINT winStatus;
 
-	std::this_thread::sleep_for(seconds(10)); //wait for the TCP connnection to establish
+	//std::this_thread::sleep_for(seconds(10)); //wait for the TCP connnection to establish
 	do 
 	winStatus=GetTcpRow(TCPSERVERPORT, TCPCLIENTPORT, MIB_TCP_STATE_ESTAB,(PMIB_TCPROW)ConnectRow);
 	while (winStatus != ERROR_SUCCESS);  //wait until the connection is established
@@ -123,7 +123,11 @@ void RunEstatsTest()
 	ToggleAllEstats(ConnectRow, TRUE);
 	
 	wprintf(L"\n\n\nDumping Estats for server socket after sending data:\n");
-	GetAllEstats(ConnectRow);
+	do {
+		//std::this_thread::sleep_for(seconds(20)); //wait for the TCP connnection to establish
+		GetAllEstats(ConnectRow);
+	}
+	while (1);
 	ToggleAllEstats(ConnectRow, FALSE);
 
 	return;
@@ -545,8 +549,7 @@ void GetAndOutputEstats(void *row, TCP_ESTATS_TYPE type)
 			wprintf(L"\n\nFine RTT");
 			wprintf(L"\nRtt Var: %u", fineRttRod->RttVar);
 			wprintf(L"\nMax Rtt: %u", fineRttRod->MaxRtt);
-			wprintf(L"\nMin Rtt: 0x%x (%u) ", fineRttRod->MinRtt,
-				fineRttRod->MinRtt);
+			wprintf(L"\nMin Rtt: %u", fineRttRod->MinRtt);
 			wprintf(L"\nSum Rtt: %u", fineRttRod->SumRtt);
 			break;
 

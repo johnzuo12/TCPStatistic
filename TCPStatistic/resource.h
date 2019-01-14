@@ -14,3 +14,4 @@ void TCPClient();
 void RTTTest();
 void LocalTCPStatistics();
 void RunEstatsTest();
+void HeadReader();

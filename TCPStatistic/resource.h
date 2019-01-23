@@ -1,7 +1,8 @@
 #pragma once
 
-#define SERVER "169.254.170.82"  //ip address of TCP server
-#define CLIENT "169.254.243.161"
+#define CLIENT "169.254.170.82"  //Surface Pro
+//#define CLIENT "169.254.243.161" //Dell Notebook
+#define SERVER "169.254.100.119" //IPT-N-0245
 #define BUFLEN 256  //Max length of buffer
 #define TCPSERVERPORT 55005  
 #define TCPCLIENTPORT 52005

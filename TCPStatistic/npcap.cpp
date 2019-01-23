@@ -131,6 +131,7 @@ BOOL LoadNpcapDlls()
 }
 void dispatcher_handler(u_char *, const struct pcap_pkthdr *, const u_char *);
 void InterpreteUDP(u_char *, const struct pcap_pkthdr *, const u_char *);
+void InterpreteTCP(u_char *, const struct pcap_pkthdr *, const u_char *);
 void PrintPayload(const struct pcap_pkthdr *header, const u_char *packet);
 
 
@@ -191,25 +192,25 @@ void HeadReader()
 	for (d = alldevs, i = 0; i< inum - 1;d = d->next, i++);
 
 	/* Open the output adapter */
-	if ((fp = pcap_open(d->name, 65536, PCAP_OPENFLAG_PROMISCUOUS, 1000, NULL, errbuf)) == NULL)
+	/*if ((fp = pcap_open(d->name, 65536, PCAP_OPENFLAG_PROMISCUOUS, 1000, NULL, errbuf)) == NULL)
 	{
 		fprintf(stderr, "\nUnable to open adapter %s.\n", errbuf);
 		return;
-	}
-	//fp = pcap_create(d->name,errbuf);
+	}*/
+	fp = pcap_create(d->name,errbuf);
 	if (fp == NULL)
 	{
 		fprintf(stderr, "Failed to create pcap\n");
 		return;
 	}
-	/*pcap_set_snaplen(fp, 100);
+	pcap_set_snaplen(fp, 100);
 	pcap_set_promisc(fp, PCAP_OPENFLAG_PROMISCUOUS);
 	pcap_set_timeout(fp, 1000);
-	pcap_set_buffer_size(fp, 32768);*/
+	pcap_set_buffer_size(fp, 32768);
 
-	///*get a list of time stamp types supported by a capture device*/
+	/*get a list of time stamp types supported by a capture device*/
 
-	/*int tstamp_types_num=0;
+	int tstamp_types_num=0;
 	int* tstamp_typesp;
 	if ((tstamp_types_num = pcap_list_tstamp_types(fp, &tstamp_typesp)) == PCAP_ERROR)
 	{
@@ -217,18 +218,18 @@ void HeadReader()
 		return;
 	}
 
-	if (tstamp_types_num!=0)
+	//if (tstamp_types_num!=0)
 	for (int i = 0;i < tstamp_types_num;i++)
 	{
 		printf("support time stamp %s\n", pcap_tstamp_type_val_to_name(tstamp_typesp[i]));
-	}*/
+	}
 
 	
-	/*if (pcap_activate(fp) == PCAP_ERROR)
+	if (pcap_activate(fp) == PCAP_ERROR)
 	{
 		fprintf(stderr, "\nUnable to activate\n");
 		return;
-	}*/
+	}
 	/* Don't care about netmask, it won't be used for this filter */
 	netmask = 0xffffff;
 
@@ -262,7 +263,7 @@ void HeadReader()
 	pcap_freealldevs(alldevs);
 
 	/* Start the main loop */
-	pcap_loop(fp, 0, InterpreteUDP, (PUCHAR)&st_ts);
+	pcap_loop(fp, 0, InterpreteTCP, (PUCHAR)&st_ts);
 
 	pcap_close(fp);
 	pcap_freecode(&fcode);
